@@ -1,0 +1,43 @@
+# Configuração de Cache e Memória de Preços
+# TapeReader Professional v2.0
+
+# Cache de memória de preços
+cache:
+  # L1 - Hot cache (memória) - OTIMIZADO COM TUPLAS
+  l1:
+    duration_minutes: 30
+    max_trades_per_asset: 10000
+    # OTIMIZAÇÃO: Configurações para tuplas leves
+    ttl_seconds: 10  # TTL mais curto para L1
+    max_size: 1000   # Tamanho máximo antes de mover para L2
+  
+  # L2 - Warm cache (agregado por minuto)
+  l2:
+    duration_hours: 24
+    flush_interval_seconds: 3600  # Flush a cada hora
+    # OTIMIZAÇÃO: Configurações L2
+    ttl_seconds: 300  # 5 minutos
+    max_size: 10000   # Tamanho máximo antes de mover para L3
+  
+  # L3 - Cold storage (SQLite)
+  l3:
+    retention_days: 90
+    db_path: 'data/price_history.db'  # Relativo ao diretório base
+    
+  # OTIMIZAÇÃO: Configurações de Batch Operations
+  batch_operations:
+    batch_size: 100          # Tamanho do batch para operações
+    batch_timeout: 1.0       # Timeout em segundos para forçar flush
+    enable_auto_flush: true  # Habilita flush automático
+    
+  # OTIMIZAÇÃO: Controle de memória
+  memory_optimization:
+    use_tuples_in_l1: true   # Usa NamedTuples leves no L1
+    track_memory_savings: true # Rastreia economia de memória
+    max_memory_mb: 512       # Limite de memória para caches
+    
+  # Configurações gerais
+  atr_period: 14
+  default_atr:
+    DOLFUT: 2.5
+    WDOFUT: 2.5

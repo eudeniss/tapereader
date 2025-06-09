@@ -1,0 +1,37 @@
+# Configuração de Gerenciamento de Risco
+# TapeReader Professional v2.0
+
+risk:
+  # Limites de perda
+  limits:
+    max_daily_loss: 0.02  # 2% da conta
+    max_position_risk: 0.01  # 1% por posição
+    max_consecutive_losses: 5
+    
+  # Exposição
+  exposure:
+    max_concurrent_positions: 3
+    max_correlation_exposure: 0.8
+    
+  # Circuit breakers
+  circuit_breaker:
+    activation_minutes: 30
+    
+  # Horários de operação
+  trading_hours:
+    start: "09:05"
+    end: "17:30"
+    lunch_start: "12:00"
+    lunch_end: "13:00"
+    
+  # Filtros de contexto
+  market_filters:
+    avoid_news_window: 5  # minutos antes de notícias
+    min_volume_threshold: 100
+    max_volatility_multiplier: 3.0
+    max_spread_multiplier: 3.0
+    
+  # Validação de sinais
+  signal_validation:
+    min_risk_reward: 1.5
+    min_stop_distance: 1.0  # em ticks

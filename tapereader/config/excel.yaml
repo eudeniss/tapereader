@@ -1,0 +1,30 @@
+# Configuração do Excel RTD
+
+excel:
+  # --- CORREÇÃO DEFINITIVA ---
+  # Coloque aqui o caminho COMPLETO para a sua planilha.
+  # Use barras normais (/) em vez de invertidas (\) para evitar erros.
+  # Verifique se este caminho está exatamente igual ao local do seu arquivo.
+  file_path: "C:/Users/DNTX3/Desktop/projeto_tapeReading/tape_reader_final/rtd_tapeReading.xlsx"
+
+  # Ranges dos dados na planilha.
+  ranges:
+    dolfut:
+      time_trades: "B4:E103"   # Colunas: Time, Price, Volume, Aggressor
+      order_book: "N4:Q103"    # Colunas: Bid Price, Bid Vol, Ask Price, Ask Vol
+    wdofut:
+      time_trades: "H4:K103"
+      order_book: "T4:W103"
+
+  # Mapeamento de colunas (baseado em índice 0) para os ranges acima.
+  column_mapping:
+    time_trades:
+      time: 0
+      price: 1
+      volume: 2
+      aggressor: 3
+    order_book:
+      bid_price: 0
+      bid_volume: 1
+      ask_price: 2
+      ask_volume: 3

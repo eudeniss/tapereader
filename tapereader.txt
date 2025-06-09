@@ -1,0 +1,416 @@
+@echo off
+rem CORREÇÃO: Força o Code Page para UTF-8 para suportar todos os caracteres
+chcp 65001 >nul
+rem CORREÇÃO 2: Força o Python a usar UTF-8 para I/O, corrigindo o UnicodeEncodeError
+set PYTHONIOENCODING=UTF-8
+title TapeReader Professional v2.0
+color 0A
+cls
+
+rem Define diretório base
+set BASE_DIR=%~dp0
+cd /d "%BASE_DIR%"
+
+rem Verificar se Python está instalado
+python --version >nul 2>&1
+if errorlevel 1 (
+    echo [ERRO] Python nao encontrado! Por favor, instale o Python 3.10+
+    echo.
+    pause
+    exit /b 1
+)
+
+:inicio
+cls
+echo ╔═══════════════════════════════════════════════════════════════╗
+echo ║                         TAPEREADER PROFESSIONAL v2.0          ║
+echo ║                   Sistema de Análise de Fluxo de Ordens       ║
+echo ╚═══════════════════════════════════════════════════════════════╝
+echo.
+echo ┌─────────────────────────────────────────────────────────────┐
+echo │ STATUS DO SISTEMA                                           │
+echo ├─────────────────────────────────────────────────────────────┤
+echo │ Diretório: %BASE_DIR%
+echo │ Planilha: rtd_tapeReading.xlsx
+echo │ Python: OK
+echo └─────────────────────────────────────────────────────────────┘
+echo.
+echo ┌─────────────────────────────────────────────────────────────┐
+echo │ MODOS DE OPERAÇÃO                                           │
+echo ├─────────────────────────────────────────────────────────────┤
+echo │                                                             │
+echo │ [1] PRODUÇÃO - Operação Real                                │
+echo │     • Leitura da planilha RTD em tempo real                 │
+echo │     • Todos os comportamentos e estratégias ativas          │
+echo │     • Logs otimizados para performance                      │
+echo │     • Meta: 80%%+ de acurácia                                │
+echo │                                                             │
+echo │ [2] TESTE - Suite de Testes Pytest                          │
+echo │     • Testes unitários e de integração                      │
+echo │     • Cobertura de código                                   │
+echo │     • Relatórios detalhados                                 │
+echo │     • Validação completa do sistema                         │
+echo │                                                             │
+echo │ [3] STATUS - Verificar Sistema                              │
+echo │     • Verifica configurações atuais                         │
+echo │     • Testa conexões                                        │
+echo │     • Valida estrutura de arquivos                          │
+echo │                                                             │
+echo │ [4] SAIR                                                    │
+echo │                                                             │
+echo └─────────────────────────────────────────────────────────────┘
+echo.
+
+:menu
+set /p "CHOICE=Digite sua escolha [1-4]: "
+
+if "%CHOICE%"=="1" goto producao
+if "%CHOICE%"=="2" goto teste
+if "%CHOICE%"=="3" goto status
+if "%CHOICE%"=="4" goto sair
+
+echo [!] Escolha inválida. Tente novamente.
+echo.
+goto menu
+
+:producao
+cls
+echo ╔═══════════════════════════════════════════════════════════════╗
+echo ║                           MODO PRODUÇÃO                       ║
+echo ╚═══════════════════════════════════════════════════════════════╝
+echo.
+echo [!] ATENÇÃO: Modo de operação REAL com dados ao vivo!
+echo.
+echo Configurações:
+echo • Planilha: rtd_tapeReading.xlsx
+echo • Atualização: 250ms (4x por segundo)
+echo • Confiança mínima: 80%%
+echo • Logs: Otimizados
+echo.
+set /p "CONFIRM=Confirma iniciar em PRODUÇÃO? (S/N): "
+if /i not "%CONFIRM%"=="S" goto inicio
+
+echo.
+echo [*] Verificando planilha Excel...
+if not exist "rtd_tapeReading.xlsx" (
+    echo [ERRO] Planilha rtd_tapeReading.xlsx não encontrada!
+    echo [!] Verifique se a planilha está no diretório:
+    echo     %BASE_DIR%
+    pause
+    goto inicio
+)
+
+echo [OK] Planilha encontrada
+echo.
+echo [*] Iniciando TapeReader em modo PRODUÇÃO...
+echo.
+
+cd tapereader
+rem CORREÇÃO: Chamada correta para o main.py com o argumento do modo
+python main.py --mode production
+cd ..
+if errorlevel 1 goto erro
+goto fim
+
+:teste
+cls
+echo ╔═══════════════════════════════════════════════════════════════╗
+echo ║                         SUITE DE TESTES                       ║
+echo ╚═══════════════════════════════════════════════════════════════╝
+echo.
+echo ┌─────────────────────────────────────────────────────────────┐
+echo │ OPÇÕES DE TESTE                                             │
+echo ├─────────────────────────────────────────────────────────────┤
+echo │                                                             │
+echo │ [1] Executar TODOS os testes                                │
+echo │     • pytest                                                │
+echo │                                                             │
+echo │ [2] Testes com COBERTURA                                    │
+echo │     • pytest --cov=src --cov-report=html                    │
+echo │                                                             │
+echo │ [3] Apenas testes UNITÁRIOS                                 │
+echo │     • pytest -m unit                                        │
+echo │                                                             │
+echo │ [4] Apenas testes de INTEGRAÇÃO                             │
+echo │     • pytest -m integration                                 │
+echo │                                                             │
+echo │ [5] Testes em PARALELO (4 cores)                            │
+echo │     • pytest -n 4                                           │
+echo │                                                             │
+echo │ [6] Teste ESPECÍFICO                                        │
+echo │     • Escolher arquivo de teste                             │
+echo │                                                             │
+echo │ [7] Testes com OUTPUT DETALHADO                             │
+echo │     • pytest -vv                                            │
+echo │                                                             │
+echo │ [8] Gerar RELATÓRIO HTML                                    │
+echo │     • pytest --html=tests/report.html                       │
+echo │                                                             │
+echo │ [9] Instalar DEPENDÊNCIAS de teste                          │
+echo │     • pip install -r tests/requirements-test.txt            │
+echo │                                                             │
+echo │ [0] Voltar ao menu principal                                │
+echo │                                                             │
+echo └─────────────────────────────────────────────────────────────┘
+echo.
+
+:menu_teste
+set /p "TEST_CHOICE=Digite sua escolha [0-9]: "
+
+if "%TEST_CHOICE%"=="0" goto inicio
+if "%TEST_CHOICE%"=="1" goto run_all_tests
+if "%TEST_CHOICE%"=="2" goto run_coverage
+if "%TEST_CHOICE%"=="3" goto run_unit
+if "%TEST_CHOICE%"=="4" goto run_integration
+if "%TEST_CHOICE%"=="5" goto run_parallel
+if "%TEST_CHOICE%"=="6" goto run_specific
+if "%TEST_CHOICE%"=="7" goto run_verbose
+if "%TEST_CHOICE%"=="8" goto run_html_report
+if "%TEST_CHOICE%"=="9" goto install_test_deps
+
+echo [!] Escolha inválida. Tente novamente.
+echo.
+goto menu_teste
+
+:install_test_deps
+cls
+echo ╔═══════════════════════════════════════════════════════════════╗
+echo ║               INSTALANDO DEPENDÊNCIAS DE TESTE                ║
+echo ╚═══════════════════════════════════════════════════════════════╝
+echo.
+cd tapereader
+echo [*] Instalando dependências de teste...
+pip install -r tests/requirements-test.txt
+if errorlevel 1 (
+    echo.
+    echo [ERRO] Falha ao instalar dependências!
+    echo [!] Verifique se o arquivo tests/requirements-test.txt existe
+    cd ..
+    pause
+    goto teste
+)
+cd ..
+echo.
+echo [OK] Dependências instaladas com sucesso!
+pause
+goto teste
+
+:run_all_tests
+cls
+echo ╔═══════════════════════════════════════════════════════════════╗
+echo ║                    EXECUTANDO TODOS OS TESTES                 ║
+echo ╚═══════════════════════════════════════════════════════════════╝
+echo.
+cd tapereader
+pytest
+cd ..
+pause
+goto teste
+
+:run_coverage
+cls
+echo ╔═══════════════════════════════════════════════════════════════╗
+echo ║                 EXECUTANDO TESTES COM COBERTURA               ║
+echo ╚═══════════════════════════════════════════════════════════════╝
+echo.
+cd tapereader
+pytest --cov=src --cov-report=html --cov-report=term
+cd ..
+echo.
+echo [*] Relatório de cobertura gerado em: tapereader\htmlcov\index.html
+pause
+goto teste
+
+:run_unit
+cls
+echo ╔═══════════════════════════════════════════════════════════════╗
+echo ║                   EXECUTANDO TESTES UNITÁRIOS                 ║
+echo ╚═══════════════════════════════════════════════════════════════╝
+echo.
+cd tapereader
+pytest -m unit
+cd ..
+pause
+goto teste
+
+:run_integration
+cls
+echo ╔═══════════════════════════════════════════════════════════════╗
+echo ║                 EXECUTANDO TESTES DE INTEGRAÇÃO               ║
+echo ╚═══════════════════════════════════════════════════════════════╝
+echo.
+cd tapereader
+pytest -m integration
+cd ..
+pause
+goto teste
+
+:run_parallel
+cls
+echo ╔═══════════════════════════════════════════════════════════════╗
+echo ║                  EXECUTANDO TESTES EM PARALELO                ║
+echo ╚═══════════════════════════════════════════════════════════════╝
+echo.
+echo [*] Executando com 4 processos paralelos...
+echo.
+cd tapereader
+pytest -n 4
+cd ..
+pause
+goto teste
+
+:run_specific
+cls
+echo ╔═══════════════════════════════════════════════════════════════╗
+echo ║                   EXECUTAR TESTE ESPECÍFICO                   ║
+echo ╚═══════════════════════════════════════════════════════════════╝
+echo.
+echo Exemplos de caminhos:
+echo • tests/unit/behaviors/test_absorption.py
+echo • tests/unit/test_tape_reader.py
+echo • tests/integration/test_excel_integration.py
+echo.
+set /p "TEST_PATH=Digite o caminho do teste: "
+echo.
+cd tapereader
+pytest "%TEST_PATH%"
+cd ..
+pause
+goto teste
+
+:run_verbose
+cls
+echo ╔═══════════════════════════════════════════════════════════════╗
+echo ║              EXECUTANDO TESTES COM OUTPUT DETALHADO           ║
+echo ╚═══════════════════════════════════════════════════════════════╝
+echo.
+cd tapereader
+pytest -vv
+cd ..
+pause
+goto teste
+
+:run_html_report
+cls
+echo ╔═══════════════════════════════════════════════════════════════╗
+echo ║                       GERANDO RELATÓRIO HTML                  ║
+echo ╚═══════════════════════════════════════════════════════════════╝
+echo.
+cd tapereader
+pytest --html=tests/report.html --self-contained-html
+cd ..
+echo.
+echo [*] Relatório gerado em: tapereader\tests\report.html
+pause
+goto teste
+
+:status
+cls
+echo ╔═══════════════════════════════════════════════════════════════╗
+echo ║                         STATUS DO SISTEMA                     ║
+echo ╚═══════════════════════════════════════════════════════════════╝
+echo.
+echo [*] Verificando componentes...
+echo.
+
+rem Verifica Python
+echo [1] Python:
+python --version
+echo.
+
+rem Verifica dependências
+echo [2] Dependências principais:
+python -c "import pandas; print(f'   pandas: {pandas.__version__}')" 2>nul || echo    pandas: NAO INSTALADO
+python -c "import xlwings; print(f'   xlwings: {xlwings.__version__}')" 2>nul || echo    xlwings: NAO INSTALADO
+python -c "import rich; print(f'   rich: OK')" 2>nul || echo    rich: NAO INSTALADO
+python -c "import pydantic; print(f'   pydantic: OK')" 2>nul || echo    pydantic: NAO INSTALADO
+echo.
+
+rem Verifica dependências de teste
+echo [3] Dependências de teste:
+python -c "import pytest; print(f'   pytest: {pytest.__version__}')" 2>nul || echo    pytest: NAO INSTALADO
+python -c "import pytest_cov; print(f'   pytest-cov: OK')" 2>nul || echo    pytest-cov: NAO INSTALADO
+python -c "import pytest_html; print(f'   pytest-html: OK')" 2>nul || echo    pytest-html: NAO INSTALADO
+python -c "import pytest_xdist; print(f'   pytest-xdist: OK')" 2>nul || echo    pytest-xdist: NAO INSTALADO
+echo.
+
+rem Verifica estrutura
+echo [4] Estrutura de arquivos:
+if exist "tapereader\config\strategies.yaml" (echo    config\: OK) else (echo    config\: FALTANDO)
+if exist "tapereader\src\main.py" (echo    src\: OK) else (echo    src\: FALTANDO)
+if exist "tapereader\tests\" (echo    tests\: OK) else (echo    tests\: FALTANDO)
+if exist "logs\" (echo    logs\: OK) else (
+    echo    logs\: FALTANDO - criando...
+    mkdir logs\analysis
+)
+echo.
+
+rem Verifica planilha
+echo [5] Planilha Excel:
+if exist "rtd_tapeReading.xlsx" (
+    echo    rtd_tapeReading.xlsx: ENCONTRADA
+) else (
+    echo    rtd_tapeReading.xlsx: NAO ENCONTRADA
+)
+echo.
+
+echo [6] Instalação de dependências:
+echo    Aplicação:
+echo      cd tapereader
+echo      pip install -r requirements.txt
+echo.
+echo    Testes:
+echo      cd tapereader
+echo      pip install -r tests/requirements-test.txt
+echo.
+
+pause
+goto inicio
+
+:erro
+echo.
+echo ╔═══════════════════════════════════════════════════════════════╗
+echo ║                                 ERRO                          ║
+echo ╚═══════════════════════════════════════════════════════════════╝
+echo.
+echo [!] Ocorreu um erro durante a execução
+echo.
+echo Possíveis soluções:
+echo.
+echo 1. Instalar dependências:
+echo      cd tapereader
+echo      pip install -r requirements.txt
+echo.
+echo 2. Instalar dependências de teste:
+echo      cd tapereader
+echo      pip install -r tests/requirements-test.txt
+echo.
+echo 3. Verificar se a planilha existe:
+echo      rtd_tapeReading.xlsx (na raiz)
+echo.
+echo 4. Verificar logs em:
+echo      %BASE_DIR%logs\
+echo.
+pause
+goto inicio
+
+:fim
+echo.
+echo ╔═══════════════════════════════════════════════════════════════╗
+echo ║                       EXECUÇÃO CONCLUÍDA                      ║
+echo ╚═══════════════════════════════════════════════════════════════╝
+echo.
+set /p "RESTART=Deseja executar novamente? (S/N): "
+if /i "%RESTART%"=="S" goto inicio
+
+:sair
+cls
+echo ╔═══════════════════════════════════════════════════════════════╗
+echo ║                               ATÉ LOGO!                       ║
+echo ║                                                               ║
+echo ║                 TapeReader Professional v2.0                  ║
+echo ║                  Sistema encerrado com sucesso                ║
+echo ╚═══════════════════════════════════════════════════════════════╝
+echo.
+timeout /t 3 /nobreak >nul
+exit /b 0

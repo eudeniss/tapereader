@@ -1,0 +1,38 @@
+# Arquivo de Configuração Principal - TapeReader Professional v2.0
+# Define a estrutura base e os modos de operação.
+
+app:
+  name: "TapeReader Professional"
+  version: "2.0"
+  base_path: ${TAPEREADER_BASE_PATH:.} # Usa variável de ambiente ou diretório atual
+
+modes:
+  production:
+    data_source: "excel_rtd"
+    excel_file: "rtd_tapeReading.xlsx" # Caminho relativo à raiz do projeto
+    log_level: "INFO"
+    update_interval_ms: 250
+    debug: false
+
+  test:
+    data_source: "mock_dynamic"
+    log_level: "DEBUG"
+    update_interval_ms: 100
+    debug: true
+    scenarios:
+      - "absorption_buy"
+      - "exhaustion_sell"
+      - "institutional_buy"
+
+system:
+  min_confidence: 0.80
+  max_signals_per_minute: 3
+  persistence:
+    autosave_interval_seconds: 300  # Salva o estado a cada 5 minutos
+    max_backups: 5                  # Mantém os últimos 5 backups de estado
+    signal_expiration_hours: 1      # Expira sinais não executados após 1 hora
+
+logging:
+  base_dir: "logs"
+  format: "[%(asctime)s] - %(name)s - %(levelname)s - %(message)s"
+  date_format: "%Y-%m-%d %H:%M:%S"

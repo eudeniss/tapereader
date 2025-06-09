@@ -1,0 +1,23 @@
+# === Framework de Teste Principal ===
+pytest==7.4.3
+
+# === Plugins Essenciais para Pytest ===
+pytest-asyncio==0.21.1   # Suporte para testes assíncronos (asyncio)
+pytest-cov==4.1.0        # Medição de cobertura de código
+pytest-mock==3.12.0      # Integração com a biblioteca de mock
+pytest-xdist==3.5.0      # Para execução de testes em paralelo (ex: -n auto)
+pytest-timeout==2.2.0    # Para definir timeouts em testes lentos
+pytest-html==4.1.1       # Para gerar relatórios de teste em formato HTML
+
+# === Ferramentas para Geração de Dados de Teste ===
+faker==19.12.0           # Geração de dados falsos (fakes) para testes
+factory-boy==3.3.0       # Para criar fixtures de objetos complexos (factories)
+
+# === Ferramentas de Qualidade e Análise de Código ===
+pylint==3.0.2            # Linter para análise estática e detecção de erros
+flake8==6.1.0            # Ferramenta para verificação de estilo e complexidade (PEP8)
+black==23.11.0           # Formatador de código "opinativo" para padronização
+isort==5.12.0            # Para ordenar os imports de forma automática
+
+# === Ferramenta de Análise de Cobertura ===
+coverage[toml]==7.3.2    # Ferramenta principal de cobertura, com suporte a toml

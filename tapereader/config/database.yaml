@@ -1,0 +1,83 @@
+# Configuração de Banco de Dados
+# TapeReader Professional v2.0
+
+database:
+  # Diretório base para todos os bancos
+  base_path: 'data'
+  
+  # Bancos específicos
+  levels:
+    path: 'data/levels.db'
+    enable_persistence: true
+    enable_decay: true
+    decay_half_life_hours: 24
+    
+  price_history:
+    path: 'data/price_history.db'
+    
+  # OTIMIZAÇÃO: Batch Operations
+  batch_operations:
+    enabled: true
+    batch_size: 100           # Número de registros por batch
+    batch_timeout: 1.0        # Timeout em segundos para forçar flush
+    auto_flush: true          # Flush automático baseado em timeout
+    
+    # Tamanhos de batch por tipo de dado
+    batch_sizes:
+      candles: 100
+      trades: 200             # Trades podem ter batches maiores
+      volume_profile: 50
+      market_events: 100
+      
+  # OTIMIZAÇÃO: Configurações SQLite para Performance
+  sqlite_optimizations:
+    journal_mode: WAL         # Write-Ahead Logging para melhor concorrência
+    synchronous: NORMAL       # Balanço entre segurança e performance
+    cache_size: 10000         # Cache de páginas (em páginas de 1KB)
+    temp_store: MEMORY        # Armazena temporários em memória
+    mmap_size: 268435456      # 256MB de memory-mapped I/O
+    page_size: 4096           # Tamanho de página otimizado
+    
+  # OTIMIZAÇÃO: Índices compostos
+  composite_indexes:
+    enabled: true
+    # Lista de índices compostos para queries frequentes
+    indexes:
+      - table: candles_1m
+        columns: [asset, timestamp]
+        order: DESC
+      - table: trades
+        columns: [asset, timestamp, price]
+        order: DESC
+      - table: volume_profile
+        columns: [asset, date, price]
+        
+  # Configurações de manutenção
+  maintenance:
+    retention_days: 90
+    cleanup_hour: 3           # 3AM
+    optimize_weekly: true
+    vacuum_monthly: true      # VACUUM mensal para desfragmentação
+    analyze_daily: true       # ANALYZE diário para estatísticas
+    
+  # Pool de conexões
+  connection_pool:
+    max_connections: 5
+    timeout_seconds: 30
+    # OTIMIZAÇÃO: Conexões dedicadas por tipo
+    dedicated_connections:
+      read: 3                 # Conexões para leitura
+      write: 2                # Conexões para escrita/batch
+      
+  # OTIMIZAÇÃO: Write buffer
+  write_buffer:
+    enabled: true
+    size_mb: 64               # Buffer de escrita em memória
+    flush_on_size: true       # Flush quando buffer cheio
+    flush_on_time: true       # Flush por timeout
+    
+  # OTIMIZAÇÃO: Monitoramento de performance
+  performance_monitoring:
+    track_batch_efficiency: true
+    log_slow_queries: true
+    slow_query_threshold_ms: 100

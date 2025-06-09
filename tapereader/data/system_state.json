@@ -1,0 +1,60 @@
+{
+  "timestamp": "2025-06-09T10:54:00.671041",
+  "version": "2.0",
+  "system": {
+    "current_regime": "UNKNOWN",
+    "running": true,
+    "active_signals": {},
+    "market_context": {
+      "DOLFUT": {
+        "current_price": null,
+        "session_volume": null,
+        "trades_count": null,
+        "current_volatility": null,
+        "last_update": null
+      },
+      "WDOFUT": {
+        "current_price": null,
+        "session_volume": null,
+        "trades_count": null,
+        "current_volatility": null,
+        "last_update": null
+      }
+    }
+  },
+  "components": {
+    "risk_manager": {
+      "timestamp": "2025-06-09T10:54:00.671058",
+      "daily_pnl": 0.0,
+      "daily_trades": 0,
+      "consecutive_losses": 0,
+      "last_reset": "2025-06-09",
+      "circuit_breaker": {
+        "active": false,
+        "until": null
+      },
+      "open_positions": [],
+      "statistics": {
+        "signals_approved": 0,
+        "signals_rejected": 0,
+        "rejections_by_reason": {},
+        "risk_adjustments": 0
+      }
+    },
+    "signal_tracker": {
+      "signal_counter": 0,
+      "current_regime": "UNKNOWN",
+      "active_signals": {},
+      "signal_history_summary": {
+        "count": 0,
+        "last_10": []
+      },
+      "strategy_performance": {},
+      "regime_history": []
+    },
+    "regime_classifier": {
+      "current_regime": "UNKNOWN",
+      "confidence": 0.0
+    }
+  }
+}

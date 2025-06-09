@@ -1,0 +1,573 @@
+# Configuração de Estratégias - TapeReader Professional v3.0
+# Este arquivo define todos os parâmetros das estratégias de trading
+# Versão 100% completa com todas as estratégias e otimizações
+
+strategies:
+  # Análise de Confluência entre DOLFUT e WDOFUT
+  confluence:
+    correlation_window: 30          # Janela em minutos para calcular correlação
+    min_correlation: 0.6            # Correlação mínima para considerar confluência
+    leader_threshold: 0.7           # Threshold para determinar ativo líder
+    confluence_boost: 0.15          # Boost máximo de confiança por confluência
+    price_sync_tolerance: 60        # Tolerância em segundos para sincronizar preços
+    min_data_points: 10             # Mínimo de pontos de dados para análise
+    leadership_window: 10           # Últimos N padrões para análise de liderança
+    divergence_threshold: 0.3       # Threshold para detectar divergência
+    behavior_window: 5              # Janela em minutos para o histórico de comportamentos
+    max_leadership_lag: 120         # Lag máximo em segundos para considerar liderança
+    min_leadership_points: 5        # Mínimo de pontos para análise de liderança
+    correlation_cache_ttl: 5        # TTL do cache de correlação em segundos
+    
+    # OTIMIZAÇÃO: Configurações adicionadas para performance
+    max_history_size: 1000          # Tamanho máximo do histórico para pré-alocação
+    enable_numpy_optimization: true  # Habilita cálculos vetorizados com NumPy
+    enable_correlation_cache: true   # Habilita cache de correlações
+    use_binary_search_sync: true    # Usa busca binária para sincronizar séries
+    enable_volume_profile: true      # Habilita análise de Volume Profile
+    
+    significant_move_thresholds:    # Limite para considerar um movimento significativo
+      DOLFUT: 0.5
+      WDOFUT: 1.0
+    confluence_boost_levels:        # Boost de confiança por nível de confluência
+      PREMIUM: 0.15
+      STRONG: 0.10
+      STANDARD: 0.05
+      WEAK: 0.0
+    confluence_thresholds:          # Thresholds para classificar nível de confluência
+      premium: 0.90
+      strong: 0.85
+      standard: 0.80
+    
+  # Matriz de Decisão - Geração de Sinais
+  decision_matrix:
+    min_final_confidence: 0.80      # Confiança mínima para gerar sinal
+    max_signals_per_minute: 2       # Limite de sinais por minuto
+    cooldown_seconds: 30            # Tempo de espera entre sinais do mesmo ativo
+    atr_period: 14                  # Período para cálculo do ATR
+    default_atr:                    # ATR padrão por ativo
+      DOLFUT: 2.5
+      WDOFUT: 2.5
+    
+    # NOVO: Configuração de seleção do melhor sinal
+    signal_selection:
+      # Pesos para cálculo do score composto (soma deve ser 1.0)
+      confidence_weight: 0.4      # 40% - Peso da confiança do sinal
+      risk_reward_weight: 0.3     # 30% - Peso do risco/retorno
+      confluence_weight: 0.2      # 20% - Peso da confluência entre ativos
+      behaviors_weight: 0.1       # 10% - Peso da quantidade/qualidade de comportamentos
+      
+      # Configuração de bonus para combinações especiais
+      premium_combinations:
+        - behaviors: ["institutional", "absorption"]
+          bonus: 0.10
+        - behaviors: ["absorption", "iceberg"]
+          bonus: 0.10
+        - behaviors: ["stop_hunt", "exhaustion"]
+          bonus: 0.08
+        - behaviors: ["divergence", "support_resistance"]
+          bonus: 0.05
+          
+      # Critérios de desempate
+      tiebreaker:
+        score_difference_threshold: 0.05  # 5% de diferença para considerar empate
+        primary_criterion: "risk_reward"   # risk_reward, stop_loss, confidence
+        secondary_criterion: "stop_loss"
+      
+  # Gerenciamento de Risco
+  risk_manager:
+    max_daily_loss: 0.02            # Perda máxima diária (2%)
+    max_position_risk: 0.01         # Risco máximo por posição (1%)
+    max_concurrent_positions: 3     # Máximo de posições simultâneas
+    max_correlation_exposure: 0.8   # Exposição máxima correlacionada
+    avoid_news_window: 5            # Minutos para evitar antes de notícias
+    min_volume_threshold: 100       # Volume mínimo para operar
+    
+    # Horários de operação (formato HH:MM)
+    trading_hours:
+      start: "09:05"
+      end: "17:30"
+      lunch_start: "12:00"
+      lunch_end: "13:00"
+      
+  # Tracking de Sinais
+  signal_tracking:
+    max_history: 100
+    cleanup_interval_minutes: 30
+    performance_window_hours: 24
+    
+  # NOVO: Classificador de Regime de Mercado (ADICIONADO)
+  regime_classifier:
+    lookback_period: 30             # Minutos de histórico para análise
+    volatility_window: 20           # Janela para cálculo de volatilidade
+    trend_threshold: 0.002          # 0.2% - Threshold para considerar tendência
+    volatility_thresholds:
+      low: 0.001                    # < 0.1%
+      normal: 0.003                 # 0.1% - 0.3%
+      high: 0.006                   # 0.3% - 0.6%
+      extreme: 0.01                 # > 1%
+    
+    # Ajustes de confiança por regime (multiplicadores)
+    regime_adjustments:
+      trending:
+        momentum_boost: 1.2
+        breakout_boost: 1.15
+        mean_reversion_penalty: 0.85
+      ranging:
+        support_resistance_boost: 1.3
+        absorption_boost: 1.2
+        momentum_penalty: 0.8
+      volatile:
+        stop_hunt_boost: 1.2
+        exhaustion_boost: 1.15
+        breakout_penalty: 0.95
+    
+# Parâmetros de risco por trade
+trading_risk:
+  risk_per_trade: 0.01              # 1% de risco da conta por trade
+  max_position_size:                # Máximo de contratos por ativo
+    DOLFUT: 50
+    WDOFUT: 50
+  asset_point_value:                # Valor monetário por ponto do ativo
+    DOLFUT: 10.0
+    WDOFUT: 10.0
+
+# === ESTRATÉGIAS BÁSICAS ===
+strategy_rules:
+  # 1. Reversão após Absorção e Exaustão
+  absorption_exhaustion_reversal:
+    name: "Reversão Absorção + Exaustão"
+    required_behaviors: ["absorption", "exhaustion"]
+    optional_behaviors: ["divergence"]
+    min_confidence: 0.75
+    base_confidence: 0.87
+    description: "Reversão após absorção e exaustão"
+    entry_offset: 0.5
+    stop_multiplier: 1.5
+    target_multiplier: 3.0
+    max_hold_time: 15
+    
+  # 2. Institucional defendendo nível
+  institutional_level_follow:
+    name: "Institucional + S/R"
+    required_behaviors: ["institutional", "support_resistance"]
+    optional_behaviors: ["momentum"]
+    min_confidence: 0.75
+    base_confidence: 0.85
+    description: "Institucional defendendo nível"
+    entry_offset: 0.0
+    stop_multiplier: 1.2
+    target_multiplier: 2.5
+    max_hold_time: 25
+    
+  # 3. Fade após Stop Hunt
+  stop_hunt_fade:
+    name: "Fade Stop Hunt"
+    required_behaviors: ["stop_hunt", "exhaustion"]
+    optional_behaviors: ["divergence"]
+    min_confidence: 0.70
+    base_confidence: 0.82
+    description: "Fade após stop hunt"
+    entry_offset: 1.0
+    stop_multiplier: 1.0
+    target_multiplier: 2.0
+    max_hold_time: 10
+    
+  # 4. Breakout com força
+  sweep_momentum_breakout:
+    name: "Sweep + Momentum"
+    required_behaviors: ["sweep", "momentum"]
+    optional_behaviors: ["breakout", "institutional"]
+    min_confidence: 0.75
+    base_confidence: 0.83
+    description: "Breakout com força após sweep"
+    entry_offset: 0.0
+    stop_multiplier: 1.5
+    target_multiplier: 4.0
+    max_hold_time: 30
+    
+  # 5. Acumulação oculta básica
+  hidden_accumulation:
+    name: "Iceberg Institucional"
+    required_behaviors: ["iceberg", "institutional"]
+    optional_behaviors: ["support_resistance"]
+    min_confidence: 0.75
+    base_confidence: 0.88
+    description: "Grande player acumulando"
+    entry_offset: 0.0
+    stop_multiplier: 1.2
+    target_multiplier: 3.5
+    max_hold_time: 20
+    
+  # 6. Rompimento confirmado
+  confirmed_breakout:
+    name: "Breakout Confirmado"
+    required_behaviors: ["breakout", "momentum"]
+    optional_behaviors: ["sweep", "institutional"]
+    min_confidence: 0.75
+    base_confidence: 0.80
+    description: "Rompimento confirmado"
+    entry_offset: 0.5
+    stop_multiplier: 1.3
+    target_multiplier: 3.0
+    max_hold_time: 20
+    
+  # 7. Reversão por divergência
+  divergence_reversal:
+    name: "Reversão Divergência"
+    required_behaviors: ["divergence", "exhaustion"]
+    optional_behaviors: ["absorption"]
+    min_confidence: 0.70
+    base_confidence: 0.85
+    description: "Reversão por divergência"
+    entry_offset: 1.0
+    stop_multiplier: 1.5
+    target_multiplier: 2.5
+    max_hold_time: 15
+    
+  # === NOVAS ESTRATÉGIAS CRÍTICAS ===
+  
+  # 8. Scalping Institucional
+  institutional_scalp:
+    name: "Institutional Scalping"
+    required_behaviors: ["institutional", "micro_aggression"]
+    optional_behaviors: ["htf", "iceberg"]
+    min_confidence: 0.82
+    base_confidence: 0.88
+    description: "Seguir pegada institucional discreta"
+    entry_offset: 0.0
+    stop_multiplier: 0.8   # Stop apertado
+    target_multiplier: 1.5  # Target rápido
+    max_hold_time: 5
+    
+  # 9. Trap Reversal
+  trap_reversal:
+    name: "Armadilha e Reversão"
+    required_behaviors: ["stop_hunt", "absorption"]
+    optional_behaviors: ["exhaustion", "divergence"]
+    min_confidence: 0.83
+    base_confidence: 0.90
+    description: "Reversão após armadilha"
+    entry_offset: 0.5
+    stop_multiplier: 1.2
+    target_multiplier: 3.5
+    max_hold_time: 20
+    
+  # 10. Hidden Accumulation Avançada
+  hidden_accumulation_advanced:
+    name: "Acumulação Oculta Avançada"
+    required_behaviors: ["iceberg", "micro_aggression"]
+    optional_behaviors: ["absorption", "renovation"]
+    min_confidence: 0.80
+    base_confidence: 0.87
+    description: "Detecta acumulação algorítmica"
+    entry_offset: 0.0
+    stop_multiplier: 1.5
+    target_multiplier: 4.0
+    max_hold_time: 30
+    
+# === ESTRATÉGIAS AVANÇADAS COM 4 BEHAVIORS ADICIONAIS ===
+advanced_strategy_rules:
+  # 11. HFT + Iceberg
+  complex_algorithm:
+    name: "Algoritmo Complexo"
+    required_behaviors: ["htf", "iceberg"]
+    optional_behaviors: ["institutional"]
+    min_confidence: 0.75
+    base_confidence: 0.88
+    description: "Algoritmo complexo com ordens ocultas"
+    entry_offset: 0.0
+    stop_multiplier: 1.0
+    target_multiplier: 2.0
+    max_hold_time: 10
+    
+  # 12. Micro Agressão + Divergência
+  stealth_accumulation:
+    name: "Acumulação Discreta"
+    required_behaviors: ["micro_aggression", "divergence"]
+    optional_behaviors: ["support_resistance"]
+    min_confidence: 0.75
+    base_confidence: 0.86
+    description: "Acumulação discreta com divergência"
+    entry_offset: 0.5
+    stop_multiplier: 1.2
+    target_multiplier: 3.0
+    max_hold_time: 20
+    
+  # 13. Recorrência + Breakout
+  reliable_breakout:
+    name: "Breakout Recorrente"
+    required_behaviors: ["recurrence", "breakout"]
+    optional_behaviors: ["momentum"]
+    min_confidence: 0.75
+    base_confidence: 0.90
+    description: "Breakout com padrão recorrente confirmado"
+    entry_offset: 0.0
+    stop_multiplier: 1.2
+    target_multiplier: 4.0
+    max_hold_time: 30
+    
+  # 14. Renovação + S/R
+  active_defense:
+    name: "Defesa Ativa"
+    required_behaviors: ["renovation", "support_resistance"]
+    optional_behaviors: ["institutional"]
+    min_confidence: 0.75
+    base_confidence: 0.87
+    description: "Defesa ativa de nível importante"
+    entry_offset: 0.0
+    stop_multiplier: 1.0
+    target_multiplier: 2.5
+    max_hold_time: 20
+    
+# === ESTRATÉGIAS ESPECIAIS PARA CONTEXTOS ESPECÍFICOS ===
+special_context_strategies:
+  # 15. Opening Range Breakout
+  opening_range:
+    name: "Opening Range Breakout"
+    required_behaviors: ["momentum", "breakout", "institutional"]
+    optional_behaviors: ["sweep"]
+    min_confidence: 0.78
+    base_confidence: 0.85
+    description: "Breakout na abertura com suporte institucional"
+    entry_offset: 0.0
+    stop_multiplier: 1.0
+    target_multiplier: 3.0
+    max_hold_time: 30
+    time_window:
+      start: "09:05"
+      end: "09:35"
+    
+  # 16. End of Day Positioning
+  eod_positioning:
+    name: "Posicionamento Final"
+    required_behaviors: ["institutional", "renovation"]
+    optional_behaviors: ["absorption"]
+    min_confidence: 0.80
+    base_confidence: 0.86
+    description: "Posicionamento para overnight"
+    entry_offset: 0.0
+    stop_multiplier: 1.5
+    target_multiplier: 2.0
+    max_hold_time: 60
+    time_window:
+      start: "17:00"
+      end: "17:30"
+    
+  # 17. Options Expiry Special
+  options_expiry:
+    name: "Dinâmica de Vencimento"
+    required_behaviors: ["renovation", "stop_hunt"]
+    optional_behaviors: ["institutional", "sweep"]
+    min_confidence: 0.82
+    base_confidence: 0.88
+    description: "Movimentos de vencimento de opções"
+    entry_offset: 0.5
+    stop_multiplier: 1.0
+    target_multiplier: 2.5
+    max_hold_time: 15
+    active_days: ["friday"]  # Sextas-feiras
+    
+  # 18. News Catalyst Movement
+  news_catalyst:
+    name: "Movimento Catalisador"
+    required_behaviors: ["sweep", "momentum", "exhaustion"]
+    optional_behaviors: ["institutional"]
+    min_confidence: 0.80
+    base_confidence: 0.85
+    description: "Movimento forte pós-notícia"
+    entry_offset: 0.0
+    stop_multiplier: 1.5
+    target_multiplier: 3.5
+    max_hold_time: 20
+    volatility_multiplier: 1.5
+    
+# === ESTRATÉGIAS PREMIUM (TRIPLAS) ===
+premium_strategies:
+  # 19. Fortress Defense
+  fortress_defense:
+    name: "Defesa Fortaleza"
+    required_behaviors: ["institutional", "absorption", "support_resistance"]
+    optional_behaviors: []
+    min_confidence: 0.85
+    base_confidence: 0.92
+    confidence_boost: 0.20
+    description: "Defesa institucional impenetrável"
+    entry_offset: 0.0
+    stop_multiplier: 0.8
+    target_multiplier: 4.0
+    max_hold_time: 30
+    
+  # 20. Explosive Breakout
+  explosive_breakout:
+    name: "Rompimento Explosivo"
+    required_behaviors: ["momentum", "sweep", "breakout"]
+    optional_behaviors: []
+    min_confidence: 0.85
+    base_confidence: 0.90
+    confidence_boost: 0.20
+    description: "Rompimento com força máxima"
+    entry_offset: 0.0
+    stop_multiplier: 1.2
+    target_multiplier: 5.0
+    max_hold_time: 25
+    
+  # 21. Algo Whale
+  algo_whale:
+    name: "Baleia Algorítmica"
+    required_behaviors: ["htf", "iceberg", "institutional"]
+    optional_behaviors: []
+    min_confidence: 0.87
+    base_confidence: 0.93
+    confidence_boost: 0.25
+    description: "Manipulação profissional de grande player"
+    entry_offset: 0.0
+    stop_multiplier: 1.0
+    target_multiplier: 4.5
+    max_hold_time: 20
+    
+  # 22. Liquidity Trap
+  liquidity_trap:
+    name: "Armadilha de Liquidez"
+    required_behaviors: ["stop_hunt", "sweep", "exhaustion"]
+    optional_behaviors: []
+    min_confidence: 0.85
+    base_confidence: 0.91
+    confidence_boost: 0.18
+    description: "Armadilha completa com reversão"
+    entry_offset: 0.5
+    stop_multiplier: 1.0
+    target_multiplier: 4.0
+    max_hold_time: 15
+    
+# Parâmetros de Risk Reward
+risk_reward_config:
+  min_risk_reward_ratio: 1.5
+  ideal_risk_reward_ratio: 2.0
+  max_stop_distance: 5.0
+  min_stop_distance: 1.0
+  
+# Circuit Breakers
+circuit_breakers:
+  consecutive_losses_limit: 5
+  circuit_breaker_duration: 30
+  daily_loss_circuit_breaker: 0.03
+  
+# Ajustes por Nível de Risco
+risk_adjustments:
+  LOW:
+    position_multiplier: 1.0
+    confidence_threshold: 0.80
+  MEDIUM:
+    position_multiplier: 0.75
+    confidence_threshold: 0.83
+  HIGH:
+    position_multiplier: 0.50
+    confidence_threshold: 0.86
+  EXTREME:
+    position_multiplier: 0.25
+    confidence_threshold: 0.90
+    
+# NOVO: Ponderação Dinâmica de Estratégias (ADICIONADO)
+dynamic_strategy_weighting:
+  enabled: true
+  lookback_window: 50             # Últimos N trades para análise
+  min_trades_for_adjustment: 10   # Mínimo de trades para calcular ajuste
+  
+  # Ajustes máximos permitidos
+  max_positive_adjustment: 1.3    # Máximo boost de 30%
+  max_negative_adjustment: 0.7    # Máxima penalidade de 30%
+  
+  # Métricas de performance
+  performance_metrics:
+    win_rate_weight: 0.3          # 30% - Taxa de acerto
+    avg_profit_weight: 0.4        # 40% - Lucro médio
+    consistency_weight: 0.3       # 30% - Consistência
+    
+  # Decaimento de ajustes
+  adjustment_decay_rate: 0.05     # 5% de decaimento por período
+  adjustment_update_interval: 10  # Atualiza a cada N sinais
+
+# ===== NOVAS SEÇÕES ADICIONADAS =====
+
+# Configuração de ponderação dinâmica por performance
+performance_weighting:
+  enabled: true
+  min_trades_for_adjustment: 10    # Mínimo de trades para começar ajustes
+  max_confidence_adjustment: 0.15   # Máximo de ajuste (+/- 15%)
+  
+  # Pesos para cálculo do ajuste
+  regime_weight: 0.3               # Peso da performance no regime atual
+  momentum_weight: 0.2             # Peso do momentum recente
+  general_weight: 0.5              # Peso da performance geral
+  
+  # Thresholds de performance
+  thresholds:
+    good_win_rate: 0.6             # Win rate considerado bom
+    bad_win_rate: 0.4              # Win rate considerado ruim
+    good_profit_factor: 2.0        # Profit factor considerado bom
+    bad_profit_factor: 1.0         # Profit factor considerado ruim
+    high_drawdown_ratio: 0.2       # Drawdown > 20% reduz confiança
+    
+  # Arquivo de persistência
+  performance_file: "data/strategy_performance.json"
+
+# Configuração de regimes de mercado
+market_regimes:
+  # Parâmetros para classificação
+  classification:
+    trend_period: 20               # Períodos para calcular tendência
+    volatility_period: 14          # Períodos para calcular volatilidade
+    volume_period: 10              # Períodos para análise de volume
+    trend_threshold: 0.002         # 0.2% para considerar tendência
+    lookback_minutes: 30           # Minutos de histórico para análise
+    
+  # Thresholds de volatilidade
+  volatility_thresholds:
+    low: 0.001                     # < 0.1%
+    normal: 0.003                  # 0.1% - 0.3%
+    high: 0.006                    # 0.3% - 0.6%
+    extreme: 0.01                  # > 1%
+    
+  # Ajustes por regime
+  regime_adjustments:
+    TRENDING_UP:
+      favored_behaviors: ["momentum", "breakout", "institutional"]
+      avoid_behaviors: ["mean_reversion", "fade"]
+      confidence_boost: 0.05
+      risk_multiplier: 1.2
+      target_multiplier: 1.3
+      
+    TRENDING_DOWN:
+      favored_behaviors: ["momentum", "breakout", "exhaustion"]
+      avoid_behaviors: ["mean_reversion", "fade"]
+      confidence_boost: 0.05
+      risk_multiplier: 1.2
+      target_multiplier: 1.3
+      
+    RANGING:
+      favored_behaviors: ["support_resistance", "absorption", "fade"]
+      avoid_behaviors: ["breakout", "momentum"]
+      confidence_boost: 0.03
+      risk_multiplier: 0.8
+      target_multiplier: 0.9
+      
+    VOLATILE:
+      favored_behaviors: ["stop_hunt", "exhaustion", "divergence"]
+      avoid_behaviors: ["breakout"]
+      confidence_boost: 0.0
+      risk_multiplier: 1.5
+      target_multiplier: 1.1
+      
+    BREAKOUT:
+      favored_behaviors: ["breakout", "volume_spike", "momentum"]
+      avoid_behaviors: ["fade", "mean_reversion"]
+      confidence_boost: 0.08
+      risk_multiplier: 1.3
+      target_multiplier: 1.5
+      
+    CHOPPY:
+      favored_behaviors: ["fade", "mean_reversion"]
+      avoid_behaviors: ["momentum", "breakout"]
+      confidence_boost: -0.05
+      risk_multiplier: 0.7
+      target_multiplier: 0.8

@@ -1,0 +1,30 @@
+# Configuração específica para testes
+app:
+  name: "TapeReader Test"
+  version: "2.0-test"
+
+modes:
+  test:
+    data_source: "mock_dynamic"
+    log_level: "DEBUG"
+    update_interval_ms: 100
+    scenarios:
+      - "absorption_buy"
+      - "exhaustion_sell"
+      - "institutional_buy"
+
+system:
+  min_confidence: 0.75  # Menor para testes
+  max_signals_per_minute: 10  # Maior para testes
+
+behaviors:
+  # Todos habilitados para teste
+  absorption:
+    enabled: true
+    min_confidence: 0.70
+  exhaustion:
+    enabled: true
+    min_confidence: 0.70
+  institutional:
+    enabled: true
+    min_confidence: 0.70

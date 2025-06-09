@@ -1,0 +1,171 @@
+# Configuração dos Detectores de Comportamento
+# TapeReader Professional v2.0
+
+# OTIMIZAÇÃO: Configurações do ProcessPoolExecutor
+process_optimization:
+  max_process_workers: 4  # Número de processos paralelos
+  # Detectores CPU-bound que usarão ProcessPool
+  cpu_bound_detectors:
+    - recurrence      # Análise de padrões complexos
+    - divergence      # Cálculos estatísticos pesados
+    - htf            # Análise de algoritmos HFT
+    - micro_aggression # Processamento de micro-estrutura
+
+# Absorção - Detecta quando um lado absorve agressão sem mover preço
+absorption:
+  enabled: true
+  min_confidence: 0.75
+  lookback_seconds: 30
+  min_volume_ratio: 2.0  # Volume 2x acima da média
+  max_price_change: 1.0  # Máximo movimento em ticks
+  min_trades: 10
+
+# Exaustão - Detecta enfraquecimento de movimento
+exhaustion:
+  enabled: true
+  min_confidence: 0.7
+  lookback_seconds: 60
+  min_move_size: 3.0  # Movimento mínimo em ticks
+  volume_decay_threshold: 0.3  # 30% decay
+  momentum_decay_threshold: 0.4
+  analysis_periods: 3
+
+# Fluxo Institucional - Detecta atividade de grandes players
+institutional:
+  enabled: true
+  min_confidence: 0.75
+  lookback_seconds: 120
+  dolfut_institutional_size: 50
+  wdofut_institutional_size: 200
+  min_institutional_trades: 3
+  clustering_window: 60
+  price_impact_threshold: 0.5
+
+# Suporte/Resistência - Detecta níveis importantes
+support_resistance:
+  enabled: true
+  min_confidence: 0.7
+  level_tolerance: 0.5
+  min_touches: 3
+  lookback_minutes: 15
+  rejection_threshold: 2.0
+  book_depth_analysis: 5
+  # Persistência
+  enable_persistence: true
+  db_path: '../data/levels.db'
+  enable_decay: true
+  decay_half_life_hours: 24
+  clustering_threshold: 1.0
+
+# Sweep - Detecta varredura rápida de liquidez
+sweep:
+  enabled: true
+  min_confidence: 0.75
+  min_price_levels: 3
+  max_time_seconds: 10
+  min_volume_spike: 2.0
+  tick_size: 0.5
+
+# Stop Hunt - Detecta caça aos stops
+stop_hunt:
+  enabled: true
+  min_confidence: 0.7
+  spike_threshold: 3.0  # Ticks mínimos
+  reversal_ratio: 0.6  # 60% de retorno
+  max_spike_duration: 30  # segundos
+  min_reversal_speed: 0.5  # ticks/segundo
+  volume_threshold: 0.5
+
+# Iceberg - Detecta ordens ocultas
+iceberg:
+  enabled: true
+  min_confidence: 0.7
+  clip_similarity: 0.9  # 90% similaridade
+  min_clips: 3
+  price_tolerance: 0.5
+  time_window: 120  # 2 minutos
+
+# Momentum - Detecta força direcional
+momentum:
+  enabled: true
+  min_confidence: 0.7
+  min_price_move: 2.0
+  min_directional_ratio: 0.7  # 70% na direção
+  lookback_periods: 5
+  acceleration_threshold: 1.2  # 20% aceleração
+
+# Breakout - Detecta rompimentos
+breakout:
+  enabled: true
+  min_confidence: 0.75
+  consolidation_periods: 10
+  breakout_threshold: 1.0
+  volume_spike_ratio: 1.5
+  confirmation_bars: 3
+  retest_tolerance: 0.5
+
+# Divergência - Detecta divergências preço/volume (CPU-BOUND)
+divergence:
+  enabled: true
+  min_confidence: 0.7
+  lookback_periods: 10
+  divergence_threshold: 0.3  # 30% divergência
+  volume_correlation_threshold: 0.5
+  # OTIMIZAÇÃO: Marcado como CPU-bound
+
+# HTF - Detecta atividade de High Frequency Trading (CPU-BOUND)
+htf:
+  enabled: true
+  min_confidence: 0.7
+  min_frequency: 5  # trades por segundo
+  max_interval_ms: 200  # ms entre trades
+  min_pattern_length: 10  # número mínimo de trades
+  size_variance_threshold: 0.15  # 15% variância máxima
+  min_hft_score: 0.7  # score mínimo para classificar como HFT
+  # OTIMIZAÇÃO: Marcado como CPU-bound
+
+# Micro Agressão - Detecta acumulação/distribuição discreta (CPU-BOUND)
+micro_aggression:
+  enabled: true
+  min_confidence: 0.7
+  window_minutes: 15  # janela de análise
+  min_trade_count: 20  # trades mínimos
+  max_individual_size: 50  # tamanho máximo DOL
+  min_total_volume: 500  # volume total mínimo DOL
+  direction_threshold: 0.7  # 70% na mesma direção
+  min_strength: 0.7  # força mínima do sinal
+  # OTIMIZAÇÃO: Marcado como CPU-bound
+
+# Recorrência - Detecta padrões repetitivos (CPU-BOUND)
+recurrence:
+  enabled: true
+  min_confidence: 0.7
+  pattern_window: 100  # trades para análise
+  min_pattern_length: 5  # tamanho mínimo do padrão
+  similarity_threshold: 0.85  # 85% similaridade
+  min_occurrences: 3  # ocorrências mínimas
+  time_window_hours: 4  # janela temporal
+  min_strength: 0.7
+  # OTIMIZAÇÃO: Marcado como CPU-bound
+
+# Renovação - Detecta reposição de ordens no book
+renovation:
+  enabled: true
+  min_confidence: 0.7
+  track_levels: 5  # níveis do book para monitorar
+  renovation_threshold: 0.8  # 80% do volume original
+  time_window_seconds: 30  # janela de análise
+  min_renovations: 3  # renovações mínimas
+  significant_size: 100  # tamanho significativo DOL
+  min_strength: 0.7
+
+# Configurações globais
+global:
+  max_detectors_parallel: 14  # Aumentado para incluir todos
+  detection_timeout: 1.0  # segundos
+  min_data_points: 5
+  cache_results: true
+  cache_duration: 60  # segundos
+  # OTIMIZAÇÃO: Controle de performance
+  enable_process_pool: true  # Habilita ProcessPool para CPU-bound
+  enable_async_io: true      # Mantém async para I/O-bound

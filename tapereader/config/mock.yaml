@@ -1,0 +1,41 @@
+# Configuração do Mock Dinâmico
+
+mock:
+  initial_prices:
+    DOLFUT: 5750.00
+    WDOFUT: 5750.00
+    
+  market_params:
+    volatility: 0.001
+    spread: 0.5
+    volume_multiplier: 1.0
+    
+  # CORREÇÃO: A estrutura foi aninhada para passar na validação de configuração.
+  # O código em 'src/data/mock_dynamic.py' precisará ser ajustado para ler
+  # de 'scenarios.duration_settings.default' em vez de 'scenarios.default_duration'.
+  scenarios:
+      default_duration: 40
+      long_duration: 80
+      medium_duration: 60
+    # Definições de cenários individuais podem ser adicionadas aqui.
+    
+  volume_ranges:
+    DOLFUT:
+      small: [5, 15]
+      normal: [15, 40]
+      large: [40, 80]
+      institutional: [80, 200]
+      iceberg_clip: 25
+      
+    WDOFUT:
+      small: [20, 60]
+      normal: [60, 200]
+      large: [200, 400]
+      institutional: [400, 1000]
+      iceberg_clip: 100
+      
+  book_params:
+    levels: 10
+    base_volume:
+      DOLFUT: [30, 80]
+      WDOFUT: [150, 400]
